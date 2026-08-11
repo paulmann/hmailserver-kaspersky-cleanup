@@ -1,0 +1,36 @@
+# Run artefacts of Invoke-HMailKasperskyCleanup.ps1
+run-*/
+reports/
+quarantine/
+*.report
+*.lst
+*.out
+run.log
+remediation-plan.json
+manifest-before.json
+preflight-matrix.json
+unscanned-files.json
+kaspersky-aggregated.txt
+infected-messages.csv
+
+# Artefacts of Test-AvpCli.ps1
+avlab/
+avp-cli-matrix.csv
+avp-cli-matrix.json
+avp-location.json
+harness.log
+summary.md
+corpus/
+
+# Never commit test malware or captured mail
+*.eml
+*.bad
+eicar*
+
+# Editors and OS
+.vs/
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+*~
