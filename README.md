@@ -5,7 +5,6 @@
   <img src="https://img.shields.io/badge/Platform-Windows%20x64-0078D6?logo=windows&logoColor=white" alt="Windows">
   <img src="https://img.shields.io/badge/Scanner-Kaspersky%20avp.com-00A88E" alt="Kaspersky avp.com">
   <img src="https://img.shields.io/badge/Mail%20server-hMailServer%20COM-6A5ACD" alt="hMailServer COM">
-  <img src="https://img.shields.io/badge/Mode-report--only%20%2F%20i0-brightgreen" alt="report only">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT">
 </p>
 
