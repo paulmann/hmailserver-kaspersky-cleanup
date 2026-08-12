@@ -233,7 +233,7 @@ function Write-RunLog {
 
     if ($script:LogFile) {
         try {
-            Add-Content -LiteralPath $script:LogFile -Value $line -Encoding utf8
+            Add-Content -LiteralPath $script:LogFile -Value $line -Encoding utf8 -WhatIf:$false -Confirm:$false
         }
         catch {
             Write-Debug ('run log not written: {0}' -f $_.Exception.Message)
@@ -337,7 +337,13 @@ function New-OutputDirectory {
         throw ($detail -join [System.Environment]::NewLine)
     }
 
-    return (New-Item -ItemType Directory -Force -Path $Path).FullName
+        $item = New-Item -ItemType Directory -Force -Path $Path -WhatIf:$false -Confirm:$false
+
+    if ($null -eq $item) {
+        return [System.IO.Path]::GetFullPath($Path)
+    }
+
+    return $item.FullName
 }
 
 function Resolve-ExistingDirectory {
@@ -2528,7 +2534,7 @@ catch {
 
     if ($script:LogFile) {
         try {
-            Add-Content -LiteralPath $script:LogFile -Value $detail -Encoding utf8
+            Add-Content -LiteralPath $script:LogFile -Value $detail -Encoding utf8 -WhatIf:$false -Confirm:$false
         }
         catch {
             Write-Debug ('fatal detail not logged: {0}' -f $_.Exception.Message)
