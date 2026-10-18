@@ -5,7 +5,6 @@
   <img src="https://img.shields.io/badge/Platform-Windows%20x64-0078D6?logo=windows&logoColor=white" alt="Windows">
   <img src="https://img.shields.io/badge/Scanner-Kaspersky%20avp.com-00A88E" alt="Kaspersky avp.com">
   <img src="https://img.shields.io/badge/Mail%20server-hMailServer%20COM-6A5ACD" alt="hMailServer COM">
-  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT">
 </p>
 
 <p align="center"><b>Audit an hMailServer message store with the local Kaspersky console client in report-only mode, review the findings, and delete only confirmed infected messages through the hMailServer COM API.</b></p>
