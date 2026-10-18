@@ -21,7 +21,7 @@
 | Author | Mikhail Deynekin (**@paulmann**) |
 | E-mail | <git@deynekin.com> |
 | Web | <https://deynekin.com/> |
-| License | MIT |
+| License | PolyForm Noncommercial 1.0.0 |
 | Language | PowerShell 7.2+ (`pwsh`), Windows only |
 | Status | Field-tested against Kaspersky 21.25 on a live mail server |
 
@@ -348,7 +348,7 @@ This toolkit removes mail from a production store. Treat it as a privileged oper
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+PolyForm Noncommercial 1.0.0 — see [`LICENSE`](LICENSE).
 
 ## Author
 
