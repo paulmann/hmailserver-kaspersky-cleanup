@@ -69,6 +69,16 @@ This toolkit therefore separates **detection** from **deletion**: Kaspersky alwa
 | --- | --- |
 | `Invoke-HMailKasperskyCleanup.ps1` | Main tool. Four modes: `Preflight`, `Scan`, `Plan`, `Delete`. Resolves `avp.com` and the hMailServer data directory, scans in batches, parses verdicts, matches them to messages over COM, writes a plan, deletes on demand with an optional quarantine copy. |
 | `Test-AvpCli.ps1` | Behaviour harness for `avp.com`. Builds a disposable EICAR corpus and drives the CLI through a full matrix of invocation forms, recording exit codes, reports, verdicts and survival of the target. Also serves as a reusable `avp.com` locator via `-ResolvePathOnly`. |
+| `HMailKaspersky.Kit.psm1` | Shared module for the unattended scripts: configuration loading, logging, `avp.com` discovery/verification, path publishing (registry, machine environment, JSON), DPAPI credential storage and EXPORT/IMPORT with the password-protection login. |
+| `Start-HMailKasperskyScanner.ps1` | Real-time scanner for hMailServer's external-scanner hook. Copies the message to a space-free snapshot, scans it with `/i0`, returns exit code 2 on detection (hMailServer blocks the message itself). Fail-open with a logged error. |
+| `Update-KavCurrent.ps1` | Publishes a live `avp.com` path after a product upgrade changes the folder name; waits until a usable build appears. |
+| `Invoke-HMailKasperskyNightly.ps1` | Nightly orchestrator: refresh the path, update bases, run `Invoke-HMailKasperskyCleanup.ps1 -Mode Scan`, optionally remediate from the produced plan. |
+| `Invoke-KavUpdate.ps1` | Runs `avp.com UPDATE` inside the maintenance window (no credentials accepted by UPDATE). |
+| `Invoke-RebootWindow.ps1` | Restarts the host only inside the window and only when a restart is actually pending (CBS/WU/pending renames, Kaspersky STATUS); refuses to restart while a scan runs. |
+| `Kav-Settings.ps1` | `Status`/`Export`/`Import` of Kaspersky settings through `avp.com` using the stored password-protection credential. |
+| `Set-KavAdminCredential.ps1` | Stores a password as a machine-scope DPAPI blob (`Kaspersky.CredentialFile` or `hMailServer.CredentialFile`). |
+| `Install-HMailKasperskyKit.ps1` | Copies the kit to its install directory, preserves an existing `config.local.psd1`, registers the scheduled tasks. |
+| `config.example.psd1` | Configuration template. Copy to `config.local.psd1` (ignored by git) and edit; updates never overwrite it. |
 | `README.md` | This document. |
 
 ---
@@ -124,6 +134,56 @@ Three design decisions carry the whole tool:
 > [!WARNING]
 > Back up the hMailServer database **and** the `Data` directory before using `Delete` mode. Deletion is irreversible from the tool's point of view; the quarantine copy is a convenience, not a backup.
 
+---
+
+## Configuration file and unattended operation
+
+The audit/remediation tool takes every setting as a parameter. The unattended part of the kit
+(scanner, publisher, nightly job, maintenance tasks) reads a configuration file instead, so a
+`git pull` never needs a code edit:
+
+```powershell
+Copy-Item .\config.example.psd1 .\config.local.psd1
+notepad .\config.local.psd1      # your paths, service names, task times and organisation details
+.\Install-HMailKasperskyKit.ps1   # copy the kit, keep config.local.psd1, register the tasks
+```
+
+Lookup order (first existing file wins): an explicit `-ConfigPath`, `$env:HMAIL_KASPERSKY_CONFIG`,
+`config.local.psd1` next to the scripts, then `config.example.psd1` (neutral defaults only).
+`config.local.psd1`, logs, state, snapshots and credential blobs are listed in `.gitignore`, so the
+repository never receives them and an update cannot overwrite them.
+
+The same file drives the maintenance window. The installer registers four SYSTEM tasks:
+
+| Task | Script | Default time |
+| --- | --- | --- |
+| `hMailKasperskyNightly` | `Invoke-HMailKasperskyNightly.ps1` | 02:09 |
+| `hMailKasperskyPathRefresh` | `Update-KavCurrent.ps1 -Quiet` | 22:11 |
+| `KasperskyUpdateWindow` | `Invoke-KavUpdate.ps1 -Quiet` | 06:05 |
+| `MailServerRebootWindow` | `Invoke-RebootWindow.ps1` | 06:15, 06:40 |
+
+Two credentials live in machine-scope DPAPI blobs, not in the repository:
+
+```powershell
+.\Set-KavAdminCredential.ps1 -Target Kaspersky     # password-protection login, for EXPORT/IMPORT
+.\Set-KavAdminCredential.ps1 -Target hMailServer   # administrator password, for COM remediation
+```
+
+`EXPORT`/`IMPORT` accept `/login` and `/password`; `SCAN` and `UPDATE` reject them (the console
+client answers `Unknown parameter '/login=...'` and performs no scan). The kit therefore adds the
+credentials only in `Kav-Settings.ps1`.
+
+### Real-time scanner
+
+Point hMailServer at `Start-HMailKasperskyScanner.ps1` (Settings → Anti-spam → External virus
+scanner), for example:
+
+```text
+"C:\Program Files\PowerShell\7\pwsh.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "C:\ProgramData\hMailKaspersky\kit\Start-HMailKasperskyScanner.ps1"
+```
+
+Exit code 2 means "infected" to hMailServer; the message is then blocked or quarantined by
+hMailServer itself. The antivirus is invoked with `/i0` (report only) and never modifies the store.
 ---
 
 ## Quick start

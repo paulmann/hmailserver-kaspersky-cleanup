@@ -34,3 +34,13 @@ eicar*
 Thumbs.db
 desktop.ini
 *~
+
+# Local configuration and runtime state of the kit (never committed)
+config.local.psd1
+*.log
+logs/
+state/
+snapshots/
+settings-*.cfg
+kav-current.json
+*.cred.machine.bin

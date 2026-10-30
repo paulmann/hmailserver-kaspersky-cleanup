@@ -58,7 +58,11 @@ Get-ChildItem *.ps1
 
 Expected files: `Invoke-HMailKasperskyCleanup.ps1`, `Test-AvpCli.ps1`,
 `Remove-HMailInfectedFromPlan.ps1` (the last one is in the tree but not in the README contents
-table).
+table), plus the unattended kit: `HMailKaspersky.Kit.psm1`,
+`Start-HMailKasperskyScanner.ps1`, `Update-KavCurrent.ps1`,
+`Invoke-HMailKasperskyNightly.ps1`, `Invoke-KavUpdate.ps1`, `Invoke-RebootWindow.ps1`,
+`Kav-Settings.ps1`, `Set-KavAdminCredential.ps1`, `Install-HMailKasperskyKit.ps1` and
+`config.example.psd1`.
 
 ### 3.3 Verify
 
@@ -76,7 +80,26 @@ installation.
 
 ## 4. Configure
 
-There is no configuration file; every setting is a parameter. The ones that matter for a first run:
+Two layers, deliberately separate:
+
+1. **Audit/remediation tool** (`Invoke-HMailKasperskyCleanup.ps1`) is parameter-driven: every
+   setting is a parameter, per run.
+2. **Unattended kit** (scanner, publisher, nightly job, maintenance tasks) reads
+   `config.local.psd1`, a copy of `config.example.psd1`. The file is untracked, so `git pull` never
+   overwrites local settings and the repository never receives host details or secrets.
+
+```powershell
+Copy-Item .\config.example.psd1 .\config.local.psd1
+# edit paths, service names, task times and organisation details
+.\Install-HMailKasperskyKit.ps1 -DryRun     # see what would be copied/registered
+.\Install-HMailKasperskyKit.ps1             # copy the kit, keep config.local.psd1, register tasks
+```
+
+Lookup order: an explicit `-ConfigPath`, `$env:HMAIL_KASPERSKY_CONFIG`, `config.local.psd1`, then
+`config.example.psd1`. Credentials are machine-scope DPAPI blobs (`Set-KavAdminCredential.ps1`),
+never values in the file.
+
+The tool parameters that matter for a first run:
 
 | Parameter | Default | Meaning |
 |---|---|---|
